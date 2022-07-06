@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.example.timerapp.model.OneSequence;
 import com.example.timerapp.model.SequenceDataset;
@@ -75,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 dataset.clear_dataset();
+                Toast.makeText(MainActivity.this, "Discarded all labels", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -87,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
                     System.out.println(seq.toString(","));
                 }
                 dataset.save_to_file();
+                Toast.makeText(MainActivity.this, "Saved all labels", Toast.LENGTH_SHORT).show();
             }
         });
 
