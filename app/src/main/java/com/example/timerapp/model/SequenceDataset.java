@@ -15,7 +15,7 @@ import java.util.Date;
 
 
 public class SequenceDataset {
-    private final String LOG_TAG = "SequenceDataset";
+    private final String LOG_TAG = "TimerLog_SequenceDataset";
     private ArrayList<OneSequence> dataset = new ArrayList<>();
     private String start_datetime = "0", end_datetime = "0";
     private final DateFormat date_format = new SimpleDateFormat("yyyyMMddHHmmss");

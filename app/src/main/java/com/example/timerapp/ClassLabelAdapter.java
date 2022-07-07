@@ -20,23 +20,20 @@ import com.example.timerapp.model.ClassItem;
 import java.util.ArrayList;
 
 public class ClassLabelAdapter extends RecyclerView.Adapter<ClassLabelAdapter.ClassLabelViewHolder> {
-    public static final String LOG_TAG = "ClassLabelListAdapter";
+    public static final String LOG_TAG = "TimerLog_ClassLabelListAdapter";
     private ArrayList<ClassItem> list_class_items;
     private Context context;
     private MainActivity.OnSequenceChangedListener item_toggle_listener;
-
-    public ClassLabelAdapter(Context context, MainActivity.OnSequenceChangedListener item_toggle_listener) {
-        this.list_class_items = new ArrayList<>();
-        this.context = context;
-        this.item_toggle_listener = item_toggle_listener;
-    }
+    private MainActivity.OnItemChangedListener item_changed_listener;
 
     public ClassLabelAdapter(Context context,
                              MainActivity.OnSequenceChangedListener item_toggle_listener,
+                             MainActivity.OnItemChangedListener item_changed_listener,
                              String[] list_class_names) {
         this.list_class_items = new ArrayList<>();
         this.context = context;
         this.item_toggle_listener = item_toggle_listener;
+        this.item_changed_listener = item_changed_listener;
         for (String name : list_class_names)
             this.list_class_items.add(new ClassItem(name));
     }
@@ -51,11 +48,13 @@ public class ClassLabelAdapter extends RecyclerView.Adapter<ClassLabelAdapter.Cl
     public void addNewItem(String name) {
         list_class_items.add(new ClassItem(name));
         notifyItemInserted(list_class_items.size() - 1);
+        this.item_changed_listener.onItemChanged();
     }
 
     public void deleteItem(int position) {
         list_class_items.remove(position);
         notifyItemRemoved(position);
+        this.item_changed_listener.onItemChanged();
     }
 
     @NonNull

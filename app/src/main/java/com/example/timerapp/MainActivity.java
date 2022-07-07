@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
-    public static final String LOG_TAG = "MainActivity";
+    public static final String LOG_TAG = "TimerLog_MainActivity";
     private final String[] PERMISSIONS_STORAGE = {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private OneSequence current_sequence;
     private SequenceDataset dataset = new SequenceDataset();
     ClassLabelAdapter recyclerview_adapter;
+    private boolean has_unsaved_class = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,8 +52,12 @@ public class MainActivity extends AppCompatActivity {
 
         // set up RecyclerView
         RecyclerView recyclerview_classes = findViewById(R.id.recyclerview_classes);
-        recyclerview_adapter = new ClassLabelAdapter(this, new OnSequenceChangedListener(),
-                loadSavedClassNames());
+        recyclerview_adapter = new ClassLabelAdapter(
+                this,
+                new OnSequenceChangedListener(),
+                new OnItemChangedListener(),
+                loadSavedClassNames()
+        );
         recyclerview_classes.setAdapter(recyclerview_adapter);
         recyclerview_classes.setLayoutManager(new LinearLayoutManager(this));
 
@@ -141,9 +146,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        saveClassNamesToFile(this.recyclerview_adapter.getAllClassNames());
+    protected void onStop() {
+        super.onStop();
+        if (has_unsaved_class) {
+            saveClassNamesToFile(this.recyclerview_adapter.getAllClassNames());
+            has_unsaved_class = false;
+        }
     }
 
     private String[] loadSavedClassNames() {
@@ -200,6 +208,12 @@ public class MainActivity extends AppCompatActivity {
                     PERMISSIONS_STORAGE,
                     REQUEST_EXTERNAL_STORAGE
             );
+        }
+    }
+
+    public class OnItemChangedListener {
+        public void onItemChanged() {
+            has_unsaved_class = true;
         }
     }
 
