@@ -1,6 +1,7 @@
 package com.example.timerapp;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +12,7 @@ import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.timerapp.model.ClassItem;
@@ -27,6 +29,23 @@ public class ClassLabelAdapter extends RecyclerView.Adapter<ClassLabelAdapter.Cl
         this.list_class_items = new ArrayList<>();
         this.context = context;
         this.item_toggle_listener = item_toggle_listener;
+    }
+
+    public ClassLabelAdapter(Context context,
+                             MainActivity.OnSequenceChangedListener item_toggle_listener,
+                             String[] list_class_names) {
+        this.list_class_items = new ArrayList<>();
+        this.context = context;
+        this.item_toggle_listener = item_toggle_listener;
+        for (String name : list_class_names)
+            this.list_class_items.add(new ClassItem(name));
+    }
+
+    public String[] getAllClassNames() {
+        String[] names = new String[list_class_items.size()];
+        for (int i = 0; i < list_class_items.size(); i++)
+            names[i] = list_class_items.get(i).name;
+        return names;
     }
 
     public void addNewItem(String name) {
@@ -50,7 +69,7 @@ public class ClassLabelAdapter extends RecyclerView.Adapter<ClassLabelAdapter.Cl
     @Override
     public void onBindViewHolder(@NonNull ClassLabelViewHolder holder, int position) {
         ClassItem item = list_class_items.get(position);
-        Log.i(LOG_TAG, "Bind new item: " + item + " at index " + position);
+        Log.i(LOG_TAG, "Bind new item: " + item.name + " at index " + position);
         String class_name = item.name;
         holder.class_name.setText(class_name);
         item.view_holder = holder;
@@ -78,11 +97,26 @@ public class ClassLabelAdapter extends RecyclerView.Adapter<ClassLabelAdapter.Cl
             }
         });
         // set up delete button
+        AlertDialog.Builder dialog_builder = new AlertDialog.Builder(context);
+        dialog_builder.setMessage(String.format("Delete \"%s\"?", class_name));
+        dialog_builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                Log.i(LOG_TAG, "delete class: " + class_name);
+                deleteItem(holder.getAdapterPosition());
+            }
+        });
+        dialog_builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss();
+            }
+        });
+        AlertDialog del_class_dialog = dialog_builder.create();
         holder.delete_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.i(LOG_TAG, "delete class: " + class_name);
-                deleteItem(holder.getAdapterPosition());
+                del_class_dialog.show();
             }
         });
     }

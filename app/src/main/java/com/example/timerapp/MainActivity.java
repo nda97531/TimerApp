@@ -19,6 +19,14 @@ import android.widget.Toast;
 import com.example.timerapp.model.OneSequence;
 import com.example.timerapp.model.SequenceDataset;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
@@ -27,9 +35,11 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
     private final int REQUEST_EXTERNAL_STORAGE = 1;
+    private final String CLASS_NAME_FILE = "class_name.txt";
 
     private OneSequence current_sequence;
     private SequenceDataset dataset = new SequenceDataset();
+    ClassLabelAdapter recyclerview_adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +48,8 @@ public class MainActivity extends AppCompatActivity {
 
         // set up RecyclerView
         RecyclerView recyclerview_classes = findViewById(R.id.recyclerview_classes);
-        ClassLabelAdapter recyclerview_adapter = new ClassLabelAdapter(this, new OnSequenceChangedListener());
+        recyclerview_adapter = new ClassLabelAdapter(this, new OnSequenceChangedListener(),
+                loadSavedClassNames());
         recyclerview_classes.setAdapter(recyclerview_adapter);
         recyclerview_classes.setLayoutManager(new LinearLayoutManager(this));
 
@@ -51,7 +62,9 @@ public class MainActivity extends AppCompatActivity {
         dialog_builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                recyclerview_adapter.addNewItem(edittext_cls_name.getText().toString());
+                String[] names = edittext_cls_name.getText().toString().split("\n");
+                for (String name : names)
+                    recyclerview_adapter.addNewItem(name);
                 edittext_cls_name.setText("");
             }
         });
@@ -72,11 +85,26 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // set DISCARD button
+        dialog_builder = new AlertDialog.Builder(this);
+        dialog_builder.setMessage("Discard all unsaved labels?");
+        dialog_builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dataset.clear_dataset();
+                Toast.makeText(MainActivity.this, "Discarded all labels", Toast.LENGTH_SHORT).show();
+            }
+        });
+        dialog_builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss();
+            }
+        });
+        AlertDialog discard_dialog = dialog_builder.create();
         findViewById(R.id.button_discard).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                dataset.clear_dataset();
-                Toast.makeText(MainActivity.this, "Discarded all labels", Toast.LENGTH_SHORT).show();
+                discard_dialog.show();
             }
         });
 
@@ -84,17 +112,70 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.button_save).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                // skip if there's nothing to save
+                if (dataset.size() == 0) {
+                    Log.i(LOG_TAG, "nothing to save");
+                    Toast.makeText(MainActivity.this, "Nothing to save", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                // save to file
                 Log.i(LOG_TAG, "saving to file");
                 for (OneSequence seq : dataset.getAll()) {
                     System.out.println(seq.toString(","));
                 }
-                dataset.save_to_file();
-                Toast.makeText(MainActivity.this, "Saved all labels", Toast.LENGTH_SHORT).show();
+                boolean save_successful = dataset.save_to_file();
+                // show message
+                if (save_successful)
+                    Toast.makeText(MainActivity.this, "Saved all labels", Toast.LENGTH_SHORT).show();
+                else
+                    new AlertDialog.Builder(MainActivity.this).setMessage("Cannot save :(").create().show();
             }
         });
 
         // ask permission
         verifyStoragePermissions(this);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        saveClassNamesToFile(this.recyclerview_adapter.getAllClassNames());
+    }
+
+    private String[] loadSavedClassNames() {
+        File file = new File(getFilesDir(), CLASS_NAME_FILE);
+        //Read text from file
+        ArrayList<String> class_names = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null)
+                class_names.add(line);
+        } catch (FileNotFoundException e) {
+            Log.w(LOG_TAG, "Class name file not found");
+            return new String[0];
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new String[0];
+        }
+        Log.i(LOG_TAG, "loaded " + class_names.size() + " classes");
+        return class_names.toArray(new String[0]);
+    }
+
+    private void saveClassNamesToFile(String[] class_names) {
+        if (class_names.length == 0)
+            return;
+
+        File file = new File(getFilesDir(), CLASS_NAME_FILE);
+        try (BufferedWriter wr = new BufferedWriter(new FileWriter(file))) {
+            for (int i = 0; i < class_names.length; i++) {
+                wr.write(class_names[i]);
+                if (i < class_names.length - 1)
+                    wr.newLine();
+            }
+            Log.i(LOG_TAG, "saved " + class_names.length + " classes");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

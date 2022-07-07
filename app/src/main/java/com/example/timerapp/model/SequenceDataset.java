@@ -1,7 +1,6 @@
 package com.example.timerapp.model;
 
 import android.os.Environment;
-import android.provider.MediaStore;
 import android.util.Log;
 
 import com.opencsv.CSVWriter;
@@ -12,7 +11,6 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 
 
@@ -50,14 +48,23 @@ public class SequenceDataset {
         return dataset;
     }
 
-    public void save_to_file() {
+    public boolean save_to_file() {
         if (dataset.size() == 0)
-            return;
+            return false;
         // mark ending time of dataset
         end_datetime = date_format.format(new Date(dataset.get(dataset.size() - 1).end_timestamp));
         // find file path
-        File folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsoluteFile();
-//        folder = MediaStore.Downloads.
+        File folder = new File(
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsoluteFile(),
+                "TimerApp"
+        );
+        // create folder to write file
+        boolean create_success = true;
+        if (!folder.exists())
+            create_success = folder.mkdirs();
+        if (!create_success)
+            return false;
+
         File file = new File(folder, String.format("%s_%s.csv", start_datetime, end_datetime));
         // write file
         CSVWriter csv_writer;
@@ -71,10 +78,11 @@ public class SequenceDataset {
             for (OneSequence seq : dataset)
                 csv_writer.writeNext(seq.toStringArray(), false);
             csv_writer.close();
-
+            return true;
         } catch (IOException e) {
             Log.e(LOG_TAG, "cannot write file");
             e.printStackTrace();
         }
+        return false;
     }
 }
