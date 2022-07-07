@@ -94,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 dataset.clear_dataset();
+                num_recorded.setText("");
                 Toast.makeText(MainActivity.this, "Discarded all labels", Toast.LENGTH_SHORT).show();
             }
         });
