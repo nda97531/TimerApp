@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.timerapp.model.OneSequence;
@@ -37,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     private final int REQUEST_EXTERNAL_STORAGE = 1;
     private final String CLASS_NAME_FILE = "class_name.txt";
 
+    private TextView num_recorded;
     private OneSequence current_sequence;
     private SequenceDataset dataset = new SequenceDataset();
     ClassLabelAdapter recyclerview_adapter;
@@ -45,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        num_recorded = findViewById(R.id.textview_num_recorded);
 
         // set up RecyclerView
         RecyclerView recyclerview_classes = findViewById(R.id.recyclerview_classes);
@@ -210,6 +213,7 @@ public class MainActivity extends AppCompatActivity {
             }
             current_sequence.end_timestamp = System.currentTimeMillis();
             dataset.add(current_sequence);
+            num_recorded.setText("Num recorded sequences: " + dataset.size());
         }
     }
 }
