@@ -48,7 +48,7 @@ public class SequenceDataset {
         return dataset;
     }
 
-    public boolean save_to_file() {
+    public boolean save_to_file(String suffix) {
         if (dataset.size() == 0)
             return false;
         // mark ending time of dataset
@@ -65,7 +65,7 @@ public class SequenceDataset {
         if (!create_success)
             return false;
 
-        File file = new File(folder, String.format("%s_%s.csv", start_datetime, end_datetime));
+        File file = new File(folder, String.format("%s_%s_%s.csv", start_datetime, end_datetime, suffix));
         // write file
         CSVWriter csv_writer;
         try {

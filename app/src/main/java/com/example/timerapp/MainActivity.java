@@ -118,6 +118,33 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // set SAVE button
+        EditText edittext_save_id = new EditText(this);
+        dialog_builder = new AlertDialog.Builder(this);
+        edittext_save_id.setHint("User ID");
+        dialog_builder.setTitle("Enter your ID");
+        dialog_builder.setView(edittext_save_id);
+        dialog_builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                Log.i(LOG_TAG, "saving to file");
+                for (OneSequence seq : dataset.getAll())
+                    System.out.println(seq.toString(","));
+
+                boolean save_successful = dataset.save_to_file(edittext_save_id.getText().toString());
+                // show message
+                if (save_successful)
+                    Toast.makeText(MainActivity.this, "Saved all labels", Toast.LENGTH_SHORT).show();
+                else
+                    new AlertDialog.Builder(MainActivity.this).setMessage("Cannot save :(").create().show();
+            }
+        });
+        dialog_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss();
+            }
+        });
+        AlertDialog save_id_dialog = dialog_builder.create();
         findViewById(R.id.button_save).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -128,16 +155,7 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
                 // save to file
-                Log.i(LOG_TAG, "saving to file");
-                for (OneSequence seq : dataset.getAll()) {
-                    System.out.println(seq.toString(","));
-                }
-                boolean save_successful = dataset.save_to_file();
-                // show message
-                if (save_successful)
-                    Toast.makeText(MainActivity.this, "Saved all labels", Toast.LENGTH_SHORT).show();
-                else
-                    new AlertDialog.Builder(MainActivity.this).setMessage("Cannot save :(").create().show();
+                save_id_dialog.show();
             }
         });
 
